@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<!-- import CSS -->
+		<link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+	</head>
+	<body>
+		<div id="app">
+			<!-- 上传 Excel 区 -->
+			<el-row style="margin-top: 20px;">
+				<el-upload class="upload-demo" drag :multiple=false :show-file-list=false :on-success="GetTableDate"
+					action="http://127.0.0.1:5000/upload" multiple>
+					<i class="el-icon-upload"></i>
+					<div class="el-upload__text">只能上传excel文件；
+						<br>将文件拖到此处，或<em>点击上传</em>
+					</div>
+					<div class="el-upload__tip" slot="tip"></div>
+				</el-upload>
+			</el-row>
+			<el-row style="margin-top: 20px;">
+				<!-- 数据预览区 -->
+				<el-table :data="tableData" border style="width: 100%">
+					<el-table-column v-for="i in tableCols" :prop="i+''" :label="i+''">
+					</el-table-column>
+				</el-table>
+			</el-row>
+
+			<el-row style="margin-top: 20px;">
+				<!-- 字段加密选择 -->
+				<div>
+					<el-form label-width="80px" :model="ruleForm" :rules="rules" ref="ruleForm">
+						<el-form-item label="加密列" prop="encryCols">
+							<el-input v-model="ruleForm.encryCols"></el-input>
+						</el-form-item>
+						<el-form-item label="加密方式">
+							<el-radio-group v-model="ruleForm.encry_style">
+								<el-radio label="md5（小写）"></el-radio>
+								<el-radio label="md5（大写）"></el-radio>
+							</el-radio-group>
+						</el-form-item>
+						<el-form-item>
+							<el-button type="primary" @click="submitForm('ruleForm')">提交</el-button>
+							<el-button @click="resetForm('ruleForm')">重置</el-button>
+						</el-form-item>
+					</el-form>
+				</div>
+			</el-row>
+
+			<el-row style="margin-top: 20px;">
+				<!-- 预览结果 -->
+				<p>预览加密后的数据，可以下载</p>
+			</el-row>
+
+		</div>
+
+	</body>
+	<!-- import Vue before Element -->
+	<script src="https://unpkg.com/vue/dist/vue.js"></script>
+	<!-- import JavaScript -->
+	<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+	<!--导入 axios 获取数据-->
+	<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+	<script src="https://cdn.staticfile.org/vue-resource/1.5.1/vue-resource.min.js"></script>
+	<script>
+		new Vue({
+			el: '#app',
+			data: function() {
+				return {
+					FiledsCheckboxGroup: ['上海'],
+					// EncryRadioGroup: encryptions[0],
+					tableCols: ["数据预览，暂无数据"],
+					tableData: [],
+					// 表单数据
+					ruleForm: {
+						encryCols: '',
+						encry_style: "md5（小写）",
+					},
+					// 表单验证
+					rules: {
+						"encryCols": [{
+							required: true,
+							message: '请输入加密列',
+							trigger: 'blur'
+						}]
+					}
+				}
+			},
+			methods: {
+				async GetTableDate(response, file, fileList) {
+					// 获取上传excel的数据并展示
+					const {
+						data: res
+					} = await this.$http.get("http://127.0.0.1:5000/table")
+					if (res.status != 200) {
+						this.$message({
+							showClose: true,
+							message: res.msg,
+							center: true,
+							type: 'error'
+						})
+						this.tableCols = ["数据预览，暂无数据"]
+						this.tableData = []
+					} else {
+						this.$message({
+							showClose: true,
+							message: res.msg,
+							center: true,
+							type: 'success'
+						})
+						this.tableCols = res.excel_values.table_cols
+						this.tableData = res.excel_values.row_5_list
+					}
+				},
+				submitForm(formName) {
+					this.$refs[formName].validate(async (valid) => {
+						if (valid) {
+							// 提交需要加密的列
+							const {
+								data: res
+							} = await this.$http.post("http://127.0.0.1:5000/encryption", this.ruleForm)
+							if (res.status == 200) {
+								this.$message({
+									showClose: true,
+									message: res.msg,
+									center: true,
+									type: 'success'
+								})
+							} else {
+								this.$message({
+									showClose: true,
+									message: res.msg,
+									center: true,
+									type: 'error'
+								})
+							}
+						} else {
+							this.$message({
+								showClose: true,
+								message: "请输入需要加密的列！",
+								center: true,
+								type: 'error'
+							})
+							return false;
+						}
+					});
+				},
+				resetForm(formName) {
+					this.ruleForm.encry_style = "md5（小写）";
+					this.ruleForm.encryCols = "";
+					this.$refs[formName].resetFields();
+				}
+			},
+		})
+	</script>
+</html>
