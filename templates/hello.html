@@ -1,80 +1,256 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta charset="UTF-8">
-		<!-- import CSS -->
-		<link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
-	</head>
-	<body>
-		<div id="app">
-			<!-- 上传 Excel 区 -->
-			<el-row style="margin-top: 20px;">
-				<el-upload class="upload-demo" drag :multiple=false :show-file-list=false :on-success="GetTableDate"
-					action="http://127.0.0.1:5000/upload" multiple>
-					<i class="el-icon-upload"></i>
-					<div class="el-upload__text">只能上传excel文件；
-						<br>将文件拖到此处，或<em>点击上传</em>
-					</div>
-					<div class="el-upload__tip" slot="tip"></div>
-				</el-upload>
-			</el-row>
-			<el-row style="margin-top: 20px;">
-				<!-- 数据预览区 -->
-				<el-table :data="tableData" border style="width: 100%">
-					<el-table-column v-for="i in tableCols" :prop="i+''" :label="i+''">
-					</el-table-column>
-				</el-table>
-			</el-row>
+<head>
+    <meta charset="UTF-8">
+    <!-- import CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+</head>
+<body>
+<div id="app">
+    <el-tabs type="border-card">
+        <el-tab-pane label="数据加密">
+            <span slot="label"><i class="el-icon-folder-opened"></i> 数据加密</span>
+            <!-- 文件上传和文件预览区 -->
+            <el-row :gutter="10" style="margin-top: 10px;">
+                <el-card class="box-card">
+                    <el-col :lg="8" type="flex" justify="center">
+                        <div>
+                            <el-upload class="upload-demo" drag :multiple=false :show-file-list=false
+                                       :on-success="GetTableDate" action="http://127.0.0.1:5000/upload" multiple>
+                                <i class="el-icon-upload"></i>
+                                <div class="el-upload__text">只能上传excel文件；
+                                    <br>将文件拖到此处，或<em>点击上传</em>
+                                </div>
+                                <div class="el-upload__tip" slot="tip"></div>
+                            </el-upload>
+                        </div>
 
-			<el-row style="margin-top: 20px;">
-				<!-- 字段加密选择 -->
-				<div>
-					<el-form label-width="80px" :model="ruleForm" :rules="rules" ref="ruleForm">
-						<el-form-item label="加密列" prop="encryCols">
-							<el-input v-model="ruleForm.encryCols"></el-input>
-						</el-form-item>
-						<el-form-item label="加密方式">
-							<el-radio-group v-model="ruleForm.encry_style">
-								<el-radio label="md5（小写）"></el-radio>
-								<el-radio label="md5（大写）"></el-radio>
-							</el-radio-group>
-						</el-form-item>
-						<el-form-item>
-							<el-button type="primary" @click="submitForm('ruleForm')">提交</el-button>
-							<el-button @click="resetForm('ruleForm')">重置</el-button>
-						</el-form-item>
-					</el-form>
-				</div>
-			</el-row>
+                    </el-col>
+                    <el-col :lg="16">
+                        <div>
+                            <el-breadcrumb separator="/">
+                                <el-breadcrumb-item><a href="#">
+                                    <el-tooltip class="item" effect="dark" content="显示前5行预览数据"
+                                                placement="top">
+                                        <i class="el-icon-info"></i>
+                                    </el-tooltip>
+                                    [{excel_name}]
+                                </a></el-breadcrumb-item>
+                                <el-breadcrumb-item v-if="sheet_name">
+                                    [{sheet_name}]
+                                </el-breadcrumb-item>
+                            </el-breadcrumb>
+                        </div>
+                        <div style="margin: 15px;">
+                            <el-table :data="tableData" max-height="250" border style="width: 100%">
+                                <el-table-column type="index" :index="indexMethod"></el-table-column>
+                                <el-table-column v-for="i in tableCols" :prop="i+''" :label="i+''">
+                                </el-table-column>
+                            </el-table>
+                        </div>
+                    </el-col>
+                </el-card>
+            </el-row>
 
-			<el-row style="margin-top: 20px;">
-				<!-- 预览结果 -->
-				<p>预览加密后的数据，可以下载</p>
-			</el-row>
+            <!-- 加密选项及预览区 -->
+            <el-row :gutter="10" style="margin-top: 20px;">
+                <!-- 字段加密选择 -->
+                <el-card class="box-card">
+                    <el-col :lg="8">
+                        <div>
+                            <el-form label-width="80px" :model="ruleForm" :rules="rules" ref="ruleForm">
+                                <el-form-item label="加密列" prop="encryCols">
+                                    <el-input v-model="ruleForm.encryCols"></el-input>
+                                </el-form-item>
+                                <el-form-item label="加密算法">
+                                    <el-select v-model="ruleForm.encryModel" placeholder="请选择加密算法">
+                                        <el-option label="md5_32" value="md5_32"></el-option>
+                                        <el-option label="md5_16" value="md5_16"></el-option>
+                                        <el-option label="sha1" value="sha1"></el-option>
+                                        <el-option label="sha224" value="sha224"></el-option>
+                                        <el-option label="sha256" value="sha256"></el-option>
+                                        <el-option label="sha512" value="sha512"></el-option>
+                                    </el-select>
+                                </el-form-item>
+                                <el-form-item label="大写小写">
+                                    <el-radio-group v-model="ruleForm.encryStyle">
+                                        <el-radio label="小写"></el-radio>
+                                        <el-radio label="大写"></el-radio>
+                                    </el-radio-group>
+                                </el-form-item>
+                                <el-form-item>
+                                    <el-button type="primary" v-if="tableData" @click="submitForm('ruleForm')">
+                                        提交
+                                    </el-button>
+                                    <el-tooltip class="item" v-else effect="dark" content="未上传Excel文件"
+                                                placement="top-start">
+                                        <el-button type="danger">提交</el-button>
+                                    </el-tooltip>
+                                    <el-button @click="resetForm('ruleForm')">重置</el-button>
+                                </el-form-item>
+                            </el-form>
+                        </div>
+                    </el-col>
+                    <el-col :lg="16">
+                        <div>
+                            <el-breadcrumb-item>
+                                <el-tooltip class="item" effect="dark" content="显示前5行预览数据" placement="top">
+                                    <i class="el-icon-info"></i>
+                                </el-tooltip>
+                                加密后的数据
+                            </el-breadcrumb-item>
+                        </div>
+                        <div style="margin: 15px;">
+                            <el-table :data="md5TableData" max-height="250" border style="width: 100%">
+                                <el-table-column type="index" :index="indexMethod"></el-table-column>
+                                <el-table-column v-for="j in md5TableCols" :prop="j+''" :label="j+''">
+                                </el-table-column>
+                            </el-table>
+                            <!-- 下载加密的数据 -->
+                            <a v-if="md5TableData" href="http://127.0.0.1:5000/download">
+                                <el-button type="primary" style="margin-top: 10px;">
+                                    下载
+                                </el-button>
+                            </a>
+                            <el-tooltip class="item" v-else effect="dark" content="没有加密文件"
+                                        placement="top-start">
+                                <el-button size="small" type="danger" style="margin-top: 10px;">下载</el-button>
+                            </el-tooltip>
+                        </div>
+                    </el-col>
+                </el-card>
+            </el-row>
 
-		</div>
+            <!-- 普通字符串加密取 -->
+            <el-row :gutter="10" style="margin-top: 20px;">
+                <el-card class="box-card">
+                    <div slot="header" class="clearfix">
+                        <span>加密字符串</span>
+                    </div>
+                    <el-row>
+                        <el-col :lg="9">
+                            <el-input
+                                    type="textarea"
+									:rows="10"
+                                    placeholder="请输入内容"
+                                    v-model="textareaEncryForm.input_textarea"
+                            >
+                            </el-input>
+                        </el-col>
+                        <el-col :lg="6">
+                            <el-form label-width="80px" :modle="textareaEncryForm" ref="textarearuleForm">
+                                <el-form-item label="加密算法">
+                                    <el-select v-model="textareaEncryForm.encryModel" placeholder="请选择加密算法">
+                                        <el-option label="md5_32" value="md5_32"></el-option>
+                                        <el-option label="md5_16" value="md5_16"></el-option>
+                                        <el-option label="sha1" value="sha1"></el-option>
+                                        <el-option label="sha224" value="sha224"></el-option>
+                                        <el-option label="sha256" value="sha256"></el-option>
+                                        <el-option label="sha512" value="sha512"></el-option>
+                                    </el-select>
+                                </el-form-item>
+                                <el-form-item label="大写小写">
+                                    <el-radio-group v-model="textareaEncryForm.encryStyle">
+                                        <el-radio label="小写"></el-radio>
+                                        <el-radio label="大写"></el-radio>
+                                    </el-radio-group>
+                                </el-form-item>
+                                <el-form-item>
+                                    <el-button type="primary" v-if="textareaEncryForm.input_textarea" @click="textareasubmitForm('textareaEncryForm')">
+                                        提交
+                                    </el-button>
+                                    <el-tooltip class="item" v-else effect="dark" content="填写需要加密的内容"
+                                                placement="top-start">
+                                        <el-button type="danger">提交</el-button>
+                                    </el-tooltip>
+                                    <el-button @click="textarearesetForm()">重置</el-button>
+                                </el-form-item>
+                            </el-form>
+                        </el-col>
+                        <el-col :lg="9">
+                            <el-input
+                                    type="textarea"
+                                    :rows="10"
+                                    placeholder="加密后的内容"
+                                    v-model="output_textarea">
+                            </el-input>
+                        </el-col>
+                    </el-row>
+                </el-card>
 
-	</body>
-	<!-- import Vue before Element -->
-	<script src="https://unpkg.com/vue/dist/vue.js"></script>
-	<!-- import JavaScript -->
-	<script src="https://unpkg.com/element-ui/lib/index.js"></script>
-	<!--导入 axios 获取数据-->
-	<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
-	<script src="https://cdn.staticfile.org/vue-resource/1.5.1/vue-resource.min.js"></script>
-	<script>
+            </el-row>
+        </el-tab-pane>
+        <el-tab-pane label="微信公众号">
+            <span slot="label"><i class="el-icon-user"></i> 微信公众号</span>
+            <el-row>
+                <el-col :xs="12" :sm="24" :md="12" :lg="12" :xl="12">
+                    <img src="{{ url_for('static',filename='sspython.png') }}" width="auto" height="300"
+                         alt="">
+                </el-col>
+                <el-col :xs="12" :sm="24" :md="12" :lg="12" :xl="12">
+                    <el-descriptions title="关于公众号">
+                        <el-descriptions-item label="用户名">kooriookami</el-descriptions-item>
+                        <el-descriptions-item label="手机号">18100000000</el-descriptions-item>
+                        <el-descriptions-item label="居住地">苏州市</el-descriptions-item>
+                        <el-descriptions-item label="备注">
+                            <el-tag size="small">学校</el-tag>
+                        </el-descriptions-item>
+                        <el-descriptions-item label="联系地址">江苏省苏州市吴中区吴中大道 1188 号</el-descriptions-item>
+                    </el-descriptions>
+                </el-col>
+            </el-row>
+        </el-tab-pane>
+        <el-tab-pane label="赞赏作者">
+            <span slot="label"><i class="el-icon-star-off"></i> 赞赏作者</span>
+            <span>觉得还不错，支持一下作者 >_< </span>
+            <el-row>
+                <el-col :xs="12" :sm="24" :md="12" :lg="12" :xl="12">
+                    <img src="{{ url_for('static',filename='zhifubao.jpg') }}" width="auto" height="300"
+                         alt="">
+                </el-col>
+                <el-col :xs="12" :sm="24" :md="12" :lg="12" :xl="12">
+                    <img src="{{ url_for('static',filename='weixin.png') }}" width="auto" height="300"
+                         alt="">
+                </el-col>
+            </el-row>
+        </el-tab-pane>
+        <el-tab-pane label="源码地址">
+            <span slot="label"><i class="el-icon-present"></i> 源码地址</span>
+            源码地址
+        </el-tab-pane>
+
+    </el-tabs>
+</div>
+
+</body>
+<!-- import Vue before Element -->
+<script src="https://unpkg.com/vue/dist/vue.js"></script>
+<!-- import JavaScript -->
+<script src="https://unpkg.com/element-ui/lib/index.js"></script>
+<!--导入 axios 获取数据-->
+<script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+<script src="https://cdn.staticfile.org/vue-resource/1.5.1/vue-resource.min.js"></script>
+<script>
 		new Vue({
 			el: '#app',
+			delimiters:['[{', '}]'],
 			data: function() {
 				return {
 					FiledsCheckboxGroup: ['上海'],
 					// EncryRadioGroup: encryptions[0],
-					tableCols: ["数据预览，暂无数据"],
-					tableData: [],
+					tableCols: ["上传数据预览"],
+					tableData: null,
+					md5TableCols: ["加密数据预览"],
+					md5TableData: null,
+					// excel名字
+					excel_name: "Excel文件名",
+					sheet_name: null,
 					// 表单数据
 					ruleForm: {
 						encryCols: '',
-						encry_style: "md5（小写）",
+						encryModel: "md5_32",
+						encryStyle: '小写',
+						encryContent:'excel'
 					},
 					// 表单验证
 					rules: {
@@ -83,7 +259,15 @@
 							message: '请输入加密列',
 							trigger: 'blur'
 						}]
-					}
+					},
+					// 单字符串加密
+					output_textarea:null,
+					textareaEncryForm:{
+					    encryModel: "md5_32",
+						encryStyle: '小写',
+						input_textarea:null,
+						encryContent:'textarea'
+					},
 				}
 			},
 			methods: {
@@ -109,7 +293,9 @@
 							type: 'success'
 						})
 						this.tableCols = res.excel_values.table_cols
-						this.tableData = res.excel_values.row_5_list
+						this.tableData = res.excel_values.row_list
+						this.excel_name = res.excel_values.excel_name
+						this.sheet_name = res.excel_values.sheet_name
 					}
 				},
 				submitForm(formName) {
@@ -125,7 +311,9 @@
 									message: res.msg,
 									center: true,
 									type: 'success'
-								})
+								});
+								this.md5TableCols = res.excel_values.table_cols;
+								this.md5TableData = res.excel_values.row_list;
 							} else {
 								this.$message({
 									showClose: true,
@@ -146,11 +334,41 @@
 					});
 				},
 				resetForm(formName) {
-					this.ruleForm.encry_style = "md5（小写）";
+					this.ruleForm.encryModel = "md5_32";
 					this.ruleForm.encryCols = "";
+					this.ruleForm.encryStyle = "小写";
 					this.$refs[formName].resetFields();
-				}
+				},
+				indexMethod(index) {
+					return index;
+				},
+				async textareasubmitForm(textareaEncryForm) {
+							const {data: res} = await this.$http.post("http://127.0.0.1:5000/encryption", this.textareaEncryForm)
+							if (res.status == 200) {
+								this.$message({
+									showClose: true,
+									message: res.msg,
+									center: true,
+									type: 'success'
+								});
+								console.log(res);
+								this.output_textarea = res.output_textarea;
+							} else {
+								this.$message({
+									showClose: true,
+									message: res.msg,
+									center: true,
+									type: 'error'
+								})
+							}
+				},
+				textarearesetForm() {
+					this.textareaEncryForm.encryModel = "md5_32";
+					this.textareaEncryForm.input_textarea = null;
+					this.textareaEncryForm.encryStyle = "小写";
+					this.output_textarea = null;
+				},
 			},
 		})
-	</script>
+</script>
 </html>
