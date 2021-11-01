@@ -1,8 +1,8 @@
 from flask import Flask, render_template, request, jsonify, send_from_directory
-import json
 from flask_cors import *
-from tools import allowed_file, excel_path, get_table_values, encry_excel_path, encryption_clos, encryption_str
+from tools import allowed_file, excel_path, encry_excel_path, get_table_values, encryption_clos, encryption_str
 import os
+import webbrowser
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True)
@@ -55,7 +55,6 @@ def encryption():
     encry_model = r_json["encryModel"]
     # 加密类型（大写、小写）
     encry_style = r_json["encryStyle"]
-    print(encry_content)
     if encry_content == "textarea":
         encry_textarea = str(r_json["input_textarea"])
         res = {
@@ -84,14 +83,6 @@ def download():
     return send_from_directory(encry_excel_path, '加密数据.xlsx')
 
 
-# @app.route("/images",methods=["GET","POST"])
-# def images():
-#     if request.method == "GET":
-#         pics = request.args.to_dict()
-#         if pics.get("pic")==1:
-#             return ""
-#         return pics
-
-
 if __name__ == '__main__':
-    app.run(debug=True)
+    webbrowser.open("http://127.0.0.1:12345/")
+    app.run(debug=False, port=12345)

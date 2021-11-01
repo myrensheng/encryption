@@ -13,10 +13,13 @@
             <!-- 文件上传和文件预览区 -->
             <el-row :gutter="10" style="margin-top: 10px;">
                 <el-card class="box-card">
+                    <div slot="header" class="clearfix">
+                        <span>一、上传加密Excel文件</span>
+                    </div>
                     <el-col :lg="8" type="flex" justify="center">
                         <div>
                             <el-upload class="upload-demo" drag :multiple=false :show-file-list=false
-                                       :on-success="GetTableDate" action="http://127.0.0.1:5000/upload" multiple>
+                                       :on-success="GetTableDate" action="http://127.0.0.1:12345/upload" multiple>
                                 <i class="el-icon-upload"></i>
                                 <div class="el-upload__text">只能上传excel文件；
                                     <br>将文件拖到此处，或<em>点击上传</em>
@@ -30,7 +33,7 @@
                         <div>
                             <el-breadcrumb separator="/">
                                 <el-breadcrumb-item><a href="#">
-                                    <el-tooltip class="item" effect="dark" content="显示前5行预览数据"
+                                    <el-tooltip class="item" effect="dark" content="默认显示Excel中的第一个表格"
                                                 placement="top">
                                         <i class="el-icon-info"></i>
                                     </el-tooltip>
@@ -53,14 +56,17 @@
             </el-row>
 
             <!-- 加密选项及预览区 -->
-            <el-row :gutter="10" style="margin-top: 20px;">
+            <el-row :gutter="10" style="margin-top: 10px;">
                 <!-- 字段加密选择 -->
                 <el-card class="box-card">
+                    <div slot="header" class="clearfix">
+                        <span>二、选择加密方式</span>
+                    </div>
                     <el-col :lg="8">
                         <div>
                             <el-form label-width="80px" :model="ruleForm" :rules="rules" ref="ruleForm">
                                 <el-form-item label="加密列" prop="encryCols">
-                                    <el-input v-model="ruleForm.encryCols"></el-input>
+                                    <el-input v-model="ruleForm.encryCols" placeholder="输入：1,2 表示加密第1列和第2列"></el-input>
                                 </el-form-item>
                                 <el-form-item label="加密算法">
                                     <el-select v-model="ruleForm.encryModel" placeholder="请选择加密算法">
@@ -94,7 +100,7 @@
                     <el-col :lg="16">
                         <div>
                             <el-breadcrumb-item>
-                                <el-tooltip class="item" effect="dark" content="显示前5行预览数据" placement="top">
+                                <el-tooltip class="item" effect="dark" content="显示原始数据以及加密后的数据" placement="top">
                                     <i class="el-icon-info"></i>
                                 </el-tooltip>
                                 加密后的数据
@@ -107,14 +113,14 @@
                                 </el-table-column>
                             </el-table>
                             <!-- 下载加密的数据 -->
-                            <a v-if="md5TableData" href="http://127.0.0.1:5000/download">
+                            <a v-if="md5TableData" href="http://127.0.0.1:12345/download">
                                 <el-button type="primary" style="margin-top: 10px;">
                                     下载
                                 </el-button>
                             </a>
                             <el-tooltip class="item" v-else effect="dark" content="没有加密文件"
                                         placement="top-start">
-                                <el-button size="small" type="danger" style="margin-top: 10px;">下载</el-button>
+                                <el-button type="danger" style="margin-top: 10px;">下载</el-button>
                             </el-tooltip>
                         </div>
                     </el-col>
@@ -131,7 +137,7 @@
                         <el-col :lg="9">
                             <el-input
                                     type="textarea"
-									:rows="10"
+                                    :rows="10"
                                     placeholder="请输入内容"
                                     v-model="textareaEncryForm.input_textarea"
                             >
@@ -156,7 +162,8 @@
                                     </el-radio-group>
                                 </el-form-item>
                                 <el-form-item>
-                                    <el-button type="primary" v-if="textareaEncryForm.input_textarea" @click="textareasubmitForm('textareaEncryForm')">
+                                    <el-button type="primary" v-if="textareaEncryForm.input_textarea"
+                                               @click="textareasubmitForm('textareaEncryForm')">
                                         提交
                                     </el-button>
                                     <el-tooltip class="item" v-else effect="dark" content="填写需要加密的内容"
@@ -183,26 +190,32 @@
         <el-tab-pane label="微信公众号">
             <span slot="label"><i class="el-icon-user"></i> 微信公众号</span>
             <el-row>
-                <el-col :xs="12" :sm="24" :md="12" :lg="12" :xl="12">
+                <el-col :xs="8" :sm="24" :md="8" :lg="8" :xl="8">
                     <img src="{{ url_for('static',filename='sspython.png') }}" width="auto" height="300"
                          alt="">
                 </el-col>
-                <el-col :xs="12" :sm="24" :md="12" :lg="12" :xl="12">
-                    <el-descriptions title="关于公众号">
-                        <el-descriptions-item label="用户名">kooriookami</el-descriptions-item>
-                        <el-descriptions-item label="手机号">18100000000</el-descriptions-item>
-                        <el-descriptions-item label="居住地">苏州市</el-descriptions-item>
-                        <el-descriptions-item label="备注">
-                            <el-tag size="small">学校</el-tag>
-                        </el-descriptions-item>
-                        <el-descriptions-item label="联系地址">江苏省苏州市吴中区吴中大道 1188 号</el-descriptions-item>
-                    </el-descriptions>
+                <el-col :xs="16" :sm="24" :md="16" :lg="16" :xl="16">
+                    <h3>扫描关注微信公众号，微信搜一搜《帅帅的Python》</h3>
+                    <div>
+                        <el-alert
+                                title="小凡学习Python的故事"
+                                type="success"
+                                :closable="false">
+                        </el-alert>
+                        <el-alert
+                                title="用Python开发实用的开源工具"
+                                type="success"
+                                :closable="false"
+                                style="margin-top: 10px;"
+                        >
+                        </el-alert>
+                    </div>
                 </el-col>
             </el-row>
         </el-tab-pane>
         <el-tab-pane label="赞赏作者">
             <span slot="label"><i class="el-icon-star-off"></i> 赞赏作者</span>
-            <span>觉得还不错，支持一下作者 >_< </span>
+            <h3>觉得还不错，支持一下作者 >_< </h3>
             <el-row>
                 <el-col :xs="12" :sm="24" :md="12" :lg="12" :xl="12">
                     <img src="{{ url_for('static',filename='zhifubao.jpg') }}" width="auto" height="300"
@@ -214,9 +227,24 @@
                 </el-col>
             </el-row>
         </el-tab-pane>
-        <el-tab-pane label="源码地址">
-            <span slot="label"><i class="el-icon-present"></i> 源码地址</span>
-            源码地址
+        <el-tab-pane label="获取源码">
+            <span slot="label"><i class="el-icon-present"></i> 获取源码</span>
+            <h4>gitee地址：
+                <el-link type="primary" href="https://gitee.com/myrensheng/encryption.git" target="_blank">
+                    https://gitee.com/myrensheng/encryption.git
+                </el-link>
+            </h4>
+            <h4>主要技术：
+                <el-link type="primary" href="https://dormousehole.readthedocs.io/en/latest/" target="_blank">
+                    Flask、
+                </el-link>
+                <el-link type="primary" href="https://element.eleme.cn/#/zh-CN/component/installation" target="_blank">
+                    Element、
+                </el-link>
+                <el-link type="primary" href="https://cn.vuejs.org/" target="_blank">
+                    Vue
+                </el-link>
+            </h4>
         </el-tab-pane>
 
     </el-tabs>
@@ -256,7 +284,7 @@
 					rules: {
 						"encryCols": [{
 							required: true,
-							message: '请输入加密列',
+							message: '输入列号，数字之间用英文逗号隔开',
 							trigger: 'blur'
 						}]
 					},
@@ -275,7 +303,7 @@
 					// 获取上传excel的数据并展示
 					const {
 						data: res
-					} = await this.$http.get("http://127.0.0.1:5000/table")
+					} = await this.$http.get("http://127.0.0.1:12345/table")
 					if (res.status != 200) {
 						this.$message({
 							showClose: true,
@@ -304,7 +332,7 @@
 							// 提交需要加密的列
 							const {
 								data: res
-							} = await this.$http.post("http://127.0.0.1:5000/encryption", this.ruleForm)
+							} = await this.$http.post("http://127.0.0.1:12345/encryption", this.ruleForm)
 							if (res.status == 200) {
 								this.$message({
 									showClose: true,
@@ -343,7 +371,7 @@
 					return index;
 				},
 				async textareasubmitForm(textareaEncryForm) {
-							const {data: res} = await this.$http.post("http://127.0.0.1:5000/encryption", this.textareaEncryForm)
+							const {data: res} = await this.$http.post("http://127.0.0.1:12345/encryption", this.textareaEncryForm)
 							if (res.status == 200) {
 								this.$message({
 									showClose: true,
@@ -370,5 +398,10 @@
 				},
 			},
 		})
+
+
+
+
+
 </script>
 </html>

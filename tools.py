@@ -1,12 +1,26 @@
 import hashlib
-
 import xlrd
 import xlwt
 import os
-
-excel_path = os.path.join(os.getcwd(), "static", "excel")
-encry_excel_path = os.path.join(os.getcwd(), "static", "md5_excel")
 ALLOWED_EXTENSIONS = ['xlsx', 'xls']
+
+
+def get_file_path():
+    """
+    获取 Excel 和加密 excel 的路径
+    """
+    encry = os.path.join(os.getcwd(), "encry")
+    excel = os.path.join(os.getcwd(), "encry", "excel")
+    encry_excel = os.path.join(os.getcwd(), "encry", "encry_excel")
+    if not os.path.exists(encry):
+        os.mkdir(encry)
+        os.mkdir(excel)
+        os.mkdir(encry_excel)
+
+    return excel, encry_excel
+
+
+excel_path, encry_excel_path = get_file_path()
 
 
 def allowed_file(filename):
