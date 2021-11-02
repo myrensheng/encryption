@@ -107,13 +107,13 @@
                             </el-breadcrumb-item>
                         </div>
                         <div style="margin: 15px;">
-                            <el-table :data="md5TableData" max-height="250" border style="width: 100%">
+                            <el-table :data="encryTableData" max-height="250" border style="width: 100%">
                                 <el-table-column type="index" :index="indexMethod"></el-table-column>
-                                <el-table-column v-for="j in md5TableCols" :prop="j+''" :label="j+''">
+                                <el-table-column v-for="j in encryTableCols" :prop="j+''" :label="j+''">
                                 </el-table-column>
                             </el-table>
                             <!-- 下载加密的数据 -->
-                            <a v-if="md5TableData" href="http://127.0.0.1:12345/download">
+                            <a v-if="encryTableData" href="http://127.0.0.1:12345/download">
                                 <el-button type="primary" style="margin-top: 10px;">
                                     下载
                                 </el-button>
@@ -218,12 +218,16 @@
             <h3>觉得还不错，支持一下作者 >_< </h3>
             <el-row>
                 <el-col :xs="12" :sm="24" :md="12" :lg="12" :xl="12">
-                    <img src="{{ url_for('static',filename='zhifubao.jpg') }}" width="auto" height="300"
-                         alt="">
+                    <div class="block">
+                        <img src="{{ url_for('static',filename='zhifubao.jpg') }}" width="auto" height="300"
+                             alt="">
+                    </div>
                 </el-col>
                 <el-col :xs="12" :sm="24" :md="12" :lg="12" :xl="12">
-                    <img src="{{ url_for('static',filename='weixin.png') }}" width="auto" height="300"
-                         alt="">
+                    <div class="block">
+                        <img src="{{ url_for('static',filename='weixin.png') }}" width="auto" height="300"
+                             alt="">
+                    </div>
                 </el-col>
             </el-row>
         </el-tab-pane>
@@ -264,12 +268,11 @@
 			delimiters:['[{', '}]'],
 			data: function() {
 				return {
-					FiledsCheckboxGroup: ['上海'],
-					// EncryRadioGroup: encryptions[0],
+				    urls:[],
 					tableCols: ["上传数据预览"],
 					tableData: null,
-					md5TableCols: ["加密数据预览"],
-					md5TableData: null,
+					encryTableCols: ["加密数据预览"],
+					encryTableData: null,
 					// excel名字
 					excel_name: "Excel文件名",
 					sheet_name: null,
@@ -340,8 +343,8 @@
 									center: true,
 									type: 'success'
 								});
-								this.md5TableCols = res.excel_values.table_cols;
-								this.md5TableData = res.excel_values.row_list;
+								this.encryTableCols = res.excel_values.table_cols;
+								this.encryTableData = res.excel_values.row_list;
 							} else {
 								this.$message({
 									showClose: true,
@@ -398,6 +401,12 @@
 				},
 			},
 		})
+
+
+
+
+
+
 
 
 
